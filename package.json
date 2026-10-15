@@ -1,9 +1,12 @@
 {
   "name": "@piewf/pi-ext-roles",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "Independent Pi role resolution options, contributions and native startup launcher",
   "license": "MIT",
+  "keywords": [
+    "pi-package"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vekexasia/pi-ext-roles.git"
