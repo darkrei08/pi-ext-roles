@@ -1,0 +1,16 @@
+[
+  {
+    "target": "skill",
+    "live_path": "/root/.agents/skills/pi-herdr-orchestrator/SKILL.md",
+    "sha256_before": "d7aeb0c01cc8c7a4caef4b7684e4c4385739271b8bf454a32155711c21ccf087",
+    "sha256_after": "f882a363a251e606cf58b1d61a938fa6b221442a5c04e157f3b41e7baa2afc9c",
+    "backup_path": "/root/git/personale/pi-ext-roles/.skillopt-sleep/staging/20261024-163952/backup/SKILL.md"
+  },
+  {
+    "target": "memory",
+    "live_path": "/root/git/personale/pi-ext-roles/CLAUDE.md",
+    "sha256_before": "",
+    "sha256_after": "17756bab1cd89601ea543cbb230dcf9677382b1b53e2ef59217b6ceb34433deb",
+    "backup_path": ""
+  }
+]

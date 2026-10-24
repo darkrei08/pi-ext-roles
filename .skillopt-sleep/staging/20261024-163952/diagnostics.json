@@ -1,0 +1,88 @@
+{
+  "night": 4,
+  "backend": "codex",
+  "opencode_tool_replay": false,
+  "gate_mode": "on",
+  "gate_no_regression": false,
+  "n_tasks": 3,
+  "baseline_score": 0.95,
+  "candidate_score": 0.99,
+  "accepted": true,
+  "gate_action": "accept_new_best",
+  "holdout_leaked": false,
+  "n_applied_edits": 7,
+  "n_rejected_edits": 0,
+  "n_unmatched_edits": 0,
+  "call_error": "",
+  "reflect_raw_head": "[{\"op\":\"add\",\"content\":\"When explicitly asked for end-to-end repository delivery, completion requires finishing all remaining implementation and tests, verifying the repository, creating conventional commits, pushing the requested branch, and opening the pull request; do not stop after local implementation while any requested delivery step remains.\",\"rationale\":\"The prior response stopped after local commits instead of completing the requested delivery workflow.\"},{\"op\":\"add\",\"content\":\"Before declaring a delivery task blocked, attempt every authorized step, diagnose recoverable failures, and continue all independent steps; report BLOCKED only for a concrete external impediment that prevents a required outcome.\",\"rationale\":\"Prevents premature blocking when remaining work can still be executed or recovered.\"},{\"op\":\"add\",\"content\":\"For repository delivery tasks, report completion only after observing the required test results, successful push, and created pull-request URL; otherwise identify the exact unfinished requirement and evidence.\",\"rationale\":\"Makes the final status match the user's observable acceptance criteria.\"}]",
+  "holdout_detail": [
+    {
+      "id": "llm_065bb12a39e4",
+      "reference_kind": "rubric",
+      "hard": 1.0,
+      "soft": 0.9,
+      "response_len": 97,
+      "response_head": "What specific repository work should I orchestrate\u2014an issue, PR, feature, backlog, or full audit?",
+      "why": "It stays focused and asks one necessary clarification before orchestration. No work was specified, so delegation or waiting would be premature, though the category list is slightly broader than needed"
+    }
+  ],
+  "gate_trials": [
+    {
+      "target": "skill",
+      "baseline_score": 0.95,
+      "candidate_score": 0.98,
+      "accepted": true,
+      "blocked_by_regression": false,
+      "task_deltas": [
+        {
+          "task_id": "llm_065bb12a39e4",
+          "tags": [
+            "mined:llm"
+          ],
+          "baseline_score": 0.95,
+          "candidate_score": 0.98,
+          "status": "improved",
+          "scores_are_finite": true
+        }
+      ]
+    },
+    {
+      "target": "memory",
+      "baseline_score": 0.98,
+      "candidate_score": 0.99,
+      "accepted": true,
+      "blocked_by_regression": false,
+      "task_deltas": [
+        {
+          "task_id": "llm_065bb12a39e4",
+          "tags": [
+            "mined:llm"
+          ],
+          "baseline_score": 0.98,
+          "candidate_score": 0.99,
+          "status": "improved",
+          "scores_are_finite": true
+        }
+      ]
+    },
+    {
+      "target": "final",
+      "baseline_score": 0.95,
+      "candidate_score": 0.99,
+      "accepted": true,
+      "blocked_by_regression": false,
+      "task_deltas": [
+        {
+          "task_id": "llm_065bb12a39e4",
+          "tags": [
+            "mined:llm"
+          ],
+          "baseline_score": 0.95,
+          "candidate_score": 0.99,
+          "status": "improved",
+          "scores_are_finite": true
+        }
+      ]
+    }
+  ]
+}
