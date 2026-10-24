@@ -41,6 +41,15 @@ test('real native launcher empty headless mode, ignored settings, tool ceiling, 
  const listed=run(['--list']);assert.equal(listed.status,0,listed.stderr);assert.match(listed.stdout,/fixture/);assert.match(listed.stdout,/scout/);
  const normal=run(['--version']);assert.equal(normal.status,0,normal.stderr);assert.equal(normal.stdout,spawnSync('pi',['--version'],{cwd:f.cwd,env:f.env,encoding:'utf8'}).stdout);
 });
+test('read-only role diagnostics emit metadata without prompt bodies, settings, factories, or Pi startup',t=>{
+ const f=fixture(t),run=args=>spawnSync(process.execPath,[cli,...args],{cwd:f.cwd,env:f.env,encoding:'utf8',timeout:20000});
+ const diagnosed=run(['fixture','--diagnose']);assert.equal(diagnosed.status,0,diagnosed.stderr);assert.equal(diagnosed.stderr,'');
+ const report=JSON.parse(diagnosed.stdout);
+ assert.deepEqual(report,{name:'fixture',source:{path:join(f.agentDir,'pi-ext-roles/roles/fixture.md'),scope:'global',priority:100},packagedFallback:false,model:'fixture/model:medium',promptMode:'append',selectors:{tools:['!*','read']},contextFiles:[]});
+ assert.equal('prompt' in report,false);assert.equal('extensionSettings' in report,false);assert.deepEqual(f.events(),[]);
+ const fallback=JSON.parse(run(['--diagnose','scout']).stdout);assert.equal(fallback.name,'scout');assert.equal(fallback.packagedFallback,true);assert.equal(fallback.promptMode,'append');assert.equal(fallback.model,undefined);
+ const missing=run(['missing-role','--diagnose']);assert.equal(missing.status,1);assert.match(missing.stderr,/Unknown agent role: missing-role/);assert.deepEqual(f.events(),[]);
+});
 test('real native launcher RPC get_state and native abrupt SIGINT/SIGTERM/SIGHUP exits',async t=>{
  for(const [signal,expectedCode] of [['SIGINT',130],['SIGTERM',143],['SIGHUP',129]]) {
  const f=fixture(t),child=spawn(process.execPath,[cli,'fixture','--mode','rpc','--no-session'],{cwd:f.cwd,env:f.env,stdio:['pipe','pipe','pipe']});

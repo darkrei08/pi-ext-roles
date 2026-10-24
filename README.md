@@ -27,6 +27,7 @@ Upgrading from the old workflow CLI? See the [migration guide](docs/roles.md#mig
 ```sh
 pi-role --list
 pi-role reviewer --identify   # print role file path and content
+pi-role reviewer --diagnose   # print resolved role metadata as JSON
 pi-role reviewer
 pi-role scout -p "Where is the retry logic?"
 ```

@@ -21,6 +21,7 @@ prompt; `overrideSystemPrompt: true` selects replacement mode (see native CLI
 limits below). Roles are trusted configuration, not a sandbox. Run
 `pi-role code-reader` or `pi-role code-reader -p "Explain the startup path"`.
 Use `pi-role --list` to inspect discovered names without loading extension factories. To try configured extension contributions, use `pi-role --discover-extension-roles --list`.
+Use `pi-role reviewer --diagnose` (or `pi-role --diagnose reviewer`) for a read-only JSON report of the role source, provenance, prompt mode, model declaration, selectors, context scopes, and fallback status. It does not print the prompt body or extension settings and does not start Pi. Use `--identify` when raw role content is intentionally required.
 The fallback roles deliberately have no model: select one through native Pi,
 `--model provider/model:thinking`, or a role/shared alias.
 

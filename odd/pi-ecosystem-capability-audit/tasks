@@ -1,0 +1,10 @@
+Feature status: implementation and verification complete; commit references are recorded after the first work-unit commit.
+
+- T1 Inventory: done. Evidence: `odd/pi-ecosystem-capability-audit/audit.md` inventory and runtime matrix.
+- T2 Normalize APIs: done. Evidence: role/API and ownership matrix in `audit.md`.
+- T3 Rank candidates: done. Evidence: P0-P3 ranking and exclusions in `audit.md`.
+- T4 Implement diagnostics: done. Evidence: `src/launcher.ts`, `test/launcher.test.mjs`, README, and roles guide.
+- T5 Verify: done. Evidence: `npm run check`, `npm run test:package`, `npm run test:terminal`, focused launcher tests, `git diff --check`, and five Linux distro rows with 63/63 tests each.
+- T6 Publish deliverables: in progress until commit references and PR evidence are recorded.
+
+The selected contribution remains generic and read-only: role aliases, failover execution, Chief/worker scheduling, memory, provider health, and Gentle AI lifecycle remain outside this package.
