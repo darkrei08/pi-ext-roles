@@ -19,12 +19,12 @@ Scope: evidence-backed ecosystem audit, role/API comparison, and one focused gen
 
 ## Tasks
 
-- T1 (S1-S6): Inventory local repositories, runtime capabilities, roles, aliases, integrations, upstream state, issues and PRs. Route: exploration. Commit: pending first work-unit commit.
-- T2 (S1-S12): Normalize canonical roles and compare `pi-ext-roles` against Pi Extensible Workflows APIs and external ownership boundaries. Route: analysis. Commit: pending first work-unit commit.
-- T3 (S1-S12): Rank P0-P3 contribution candidates, reject orchestration/model-gateway/memory coupling, and select one minimal diagnostic contribution. Route: design. Commit: pending first work-unit commit.
-- T4 (S3-S12): Implement read-only role diagnostics without changing existing role resolution or orchestration ownership. Route: implementation. Commit: pending first work-unit commit.
-- T5 (S3-S12): Run package, terminal, compatibility and personal integration checks; record failures and unavailable checks. Route: verification. Commit: pending first work-unit commit.
-- T6 (S1-S12): Publish structured audit, role matrix, ownership matrix, PR drafts, migration guidance, personal-only exclusions and adapter-removal recommendations. Route: documentation. Commit: pending first work-unit commit.
+- T1 (S1-S6): Inventory local repositories, runtime capabilities, roles, aliases, integrations, upstream state, issues and PRs. Route: exploration. Commit: e3901b6.
+- T2 (S1-S12): Normalize canonical roles and compare `pi-ext-roles` against Pi Extensible Workflows APIs and external ownership boundaries. Route: analysis. Commit: e3901b6.
+- T3 (S1-S12): Rank P0-P3 contribution candidates, reject orchestration/model-gateway/memory coupling, and select one minimal diagnostic contribution. Route: design. Commit: e3901b6.
+- T4 (S3-S12): Implement read-only role diagnostics without changing existing role resolution or orchestration ownership. Route: implementation. Commit: e3901b6.
+- T5 (S3-S12): Run package, terminal, compatibility and personal integration checks; record failures and unavailable checks. Route: verification. Commit: e3901b6.
+- T6 (S1-S12): Publish structured audit, role matrix, ownership matrix, PR drafts, migration guidance, personal-only exclusions and adapter-removal recommendations. Route: documentation. Commit: e3901b6.
 
 ## Log
 
