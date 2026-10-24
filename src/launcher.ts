@@ -5,14 +5,14 @@ import { homedir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { createEventBus, getAgentDir, parseArgs, DefaultResourceLoader, DefaultPackageManager, SettingsManager } from "@earendil-works/pi-coding-agent";
 import { resolveProjectAuthorization } from "./authorization.js";
-import { discoverRoles, resolveRole, type RoleDiscoveryOptions } from "./roles.js";
+import { discoverRoles, isPackagedFallbackRole, resolveRole, type RoleDiscoveryOptions } from "./roles.js";
 import { collectRoleContributions } from "./contributions.js";
 import { composeRoleConfiguration } from "./settings.js";
 import { errorText, fail, modelAliasName, resolveModelReference, selectResourcesByLayers } from "./utils.js";
 import { canonicalPath, extensionIdentity } from "./paths.js";
 import { TOOL_LAYERS_FLAG } from "./cli-tool-bridge.js";
 
-export const LAUNCHER_USAGE = "Usage: pi-role [<role> | --role <role>] [Pi arguments...]\n       pi-role --list [--approve | --no-approve]\n       pi-role <role> --identify   Print the role file path and its content\nExperimental: --discover-extension-roles loads configured extension factories to discover roles.\nWithout a role, launches stock Pi from PATH. Role extensionSettings are ignored by the CLI.\n";
+export const LAUNCHER_USAGE = "Usage: pi-role [<role> | --role <role>] [Pi arguments...]\n       pi-role --list [--approve | --no-approve]\n       pi-role <role> --identify   Print the role file path and its content\n       pi-role <role> --diagnose   Print resolved role metadata as JSON\nExperimental: --discover-extension-roles loads configured extension factories to discover roles.\nWithout a role, launches stock Pi from PATH. Role extensionSettings are ignored by the CLI.\n";
 const BUILTIN_TOOLS = ["read", "bash", "edit", "write", "grep", "find", "ls", "powershell"];
 function resourcePath(input: string, cwd: string) {
   if (input.startsWith("builtin:")) return input;
@@ -75,11 +75,14 @@ export async function runPiRole(argv: readonly string[], cwd = process.cwd(), ag
       rest.splice(roleOption.index, 2);
     } else if (rest[0] && !rest[0].startsWith("-")) role = rest.shift();
     const identifyOption = scanOptions(rest).options.find(option => option.name === "--identify");
-    if (identifyOption) {
+    const diagnoseOption = scanOptions(rest).options.find(option => option.name === "--diagnose");
+    if (identifyOption && diagnoseOption) fail("UNSUPPORTED_ARGUMENT", "--identify and --diagnose cannot be combined");
+    const inspectionOption = identifyOption ?? diagnoseOption;
+    if (inspectionOption) {
       const width = role ? 1 : 2;
-      role ??= rest[identifyOption.index + 1];
-      if (!role || role.startsWith("-")) fail("UNSUPPORTED_ARGUMENT", "--identify requires a role");
-      rest.splice(identifyOption.index, width);
+      role ??= rest[inspectionOption.index + 1];
+      if (!role || role.startsWith("-")) fail("UNSUPPORTED_ARGUMENT", `${inspectionOption.name} requires a role`);
+      rest.splice(inspectionOption.index, width);
     }
     const head = scanOptions(rest).options.map(option => option.name);
     const list = head.includes("--list"), help = head.includes("--help") || head.includes("-h");
@@ -113,12 +116,26 @@ export async function runPiRole(argv: readonly string[], cwd = process.cwd(), ag
       }
       return 0;
     }
-    if (identifyOption) {
+    if (identifyOption || diagnoseOption) {
       const definition = discoverRoles(discovery)[role!];
       if (!definition) fail("UNKNOWN_AGENT_TYPE", `Unknown agent role: ${role}`);
       const path = definition.provenance?.path;
       if (!path) fail("CONFIG_ERROR", `Role ${role} has no source file`);
-      process.stdout.write(`${path}\n\n${readFileSync(path, "utf8")}`);
+      if (identifyOption) {
+        process.stdout.write(`${path}\n\n${readFileSync(path, "utf8")}`);
+        return 0;
+      }
+      const provenance = definition.provenance!;
+      const diagnostic = {
+        name: role,
+        source: { path, ...(provenance.scope === undefined ? {} : { scope: provenance.scope }), ...(provenance.owner === undefined ? {} : { owner: provenance.owner }), ...(provenance.priority === undefined ? {} : { priority: provenance.priority }) },
+        packagedFallback: isPackagedFallbackRole(definition),
+        ...(definition.model === undefined ? {} : { model: definition.model }),
+        promptMode: definition.overrideSystemPrompt === true ? "override" : "append",
+        selectors: { ...(definition.tools === undefined ? {} : { tools: [...definition.tools] }), ...(definition.skills === undefined ? {} : { skills: [...definition.skills] }), ...(definition.extensions === undefined ? {} : { extensions: [...definition.extensions] }) },
+        ...(definition.contextFiles === undefined ? {} : { contextFiles: [...definition.contextFiles] }),
+      };
+      process.stdout.write(`${JSON.stringify(diagnostic, null, 2)}\n`);
       return 0;
     }
     if (head.some(name => name === `--${TOOL_LAYERS_FLAG}` || name.startsWith(`--${TOOL_LAYERS_FLAG}=`))) fail("UNSUPPORTED_ARGUMENT", "Private tool selector flag cannot be supplied to pi-role");
