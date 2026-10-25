@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { relative, resolve, isAbsolute, join } from "node:path";
-import { homedir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { createEventBus, getAgentDir, parseArgs, DefaultResourceLoader, DefaultPackageManager, SettingsManager } from "@earendil-works/pi-coding-agent";
 import { resolveProjectAuthorization } from "./authorization.js";
@@ -112,7 +112,9 @@ export async function runPiRole(argv: readonly string[], cwd = process.cwd(), ag
       if (help && !role && !list) {
         stripOptions(rest, ["--extension", "-e"]);
         insertOptions(rest, ["--no-extensions"]);
-        return await launch(rest, cwd, agentDir);
+        const helpAgentDir = mkdtempSync(join(tmpdir(), "pi-role-help-"));
+        try { return await launch(rest, cwd, helpAgentDir); }
+        finally { rmSync(helpAgentDir, { recursive: true, force: true }); }
       }
       return 0;
     }
