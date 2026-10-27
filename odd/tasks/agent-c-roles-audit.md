@@ -1,0 +1,26 @@
+# Agent C role composition and workflow compatibility audit
+Repository: `@piewf/pi-ext-roles`, branch `feat/agent-engineering-roles-audit`.
+Scope: read-only compatibility audit plus at most one smallest justified upstream-compatible improvement; no push, merge, publish, issue/PR mutation, generated artifacts, lockfile changes, or edits outside the allowed surfaces.
+
+## Specs
+
+1. S1: "audit role composition, model aliases, skills, model/effort metadata, inheritance, permissions/authorization and PiWorkflow integration."
+2. S2: "Verify existing capabilities and compatibility contracts before proposing changes; do not duplicate PiWorkflow or Pi core responsibilities."
+3. S3: "Implement at most one smallest justified upstream-compatible improvement, with focused tests and docs; otherwise provide an evidence-backed no-op audit."
+4. S4: "Run build, focused tests, full test/check where applicable, inspect diff, and create one local Conventional Commit only after validation."
+5. S5: "Do not push, merge, publish or create/close issues or PRs."
+6. S6: "Return READY or BLOCKED only with evidence."
+
+## Tasks
+
+- T1 (S1-S2): Read repository guidance, source, tests, docs, Git state, upstream/origin and issue/PR metadata; map ownership and compatibility contracts. Route: exploration. Commit: this final local audit commit (HEAD).
+- T2 (S1-S3): Audit role composition, aliases, model/thinking metadata, skills, inheritance, authorization boundaries and PiWorkflow integration; decide no-op versus one minimal improvement. Route: analysis. Commit: this final local audit commit (HEAD).
+- T3 (S3-S4): If justified, implement one bounded improvement with focused tests/docs; otherwise preserve a no-op source diff. Route: implementation. Commit: this final local audit commit (HEAD).
+- T4 (S4-S6): Run build, focused tests, full test/check, inspect diff/status, create one local Conventional Commit only after validation, and report evidence. Route: verification. Commit: this final local audit commit (HEAD).
+
+## Log
+
+L1: "You are Agent C under [MASTER] Pi Herdr Orchestrator. Work only in /root/.herdr/worktrees/pi-ext-roles/feat-agent-engineering-roles-audit on branch feat/agent-engineering-roles-audit. Read CLAUDE.md, README.md, RELEASING.md, source/tests and current Git state first; inspect upstream/origin and issues/PRs read-only. Objective: audit role composition, model aliases, skills, model/effort metadata, inheritance, permissions/authorization and PiWorkflow integration. Verify existing capabilities and compatibility contracts before proposing changes; do not duplicate PiWorkflow or Pi core responsibilities. Before source edits create odd/tasks/agent-c-roles-audit.md with exact objective, bounded specs, tasks and log. Allowed edit surfaces: src/**, test/**, docs/**, README.md, CLAUDE.md only if needed, odd/tasks/agent-c-roles-audit.md. Do not edit generated dist, package lockfiles, release metadata or other repositories. Implement at most one smallest justified upstream-compatible improvement, with focused tests and docs; otherwise provide an evidence-backed no-op audit. Run build, focused tests, full test/check where applicable, inspect diff, and create one local Conventional Commit only after validation. Report via orch_report task C with branch, worktree, exact PASS/FAIL/BLOCKED/NOT RUN checks, commit, risks, memory state and next action. Do not push, merge, publish or create/close issues or PRs. Return READY or BLOCKED only with evidence."
+L2: 2026-10-27: Created this bounded feature document before any source edit. Initial repository state is clean on the feature branch, which points at the fork's main tip and is three commits ahead of upstream/main; upstream has no open issues and one merged PR. Existing project memory reports a prior read-only compatibility audit and a metadata-only diagnostics contribution already present in this tree; current source and tests must still be re-verified before deciding whether a new improvement is justified.
+L3: 2026-10-27: Source and test audit found complete existing contracts: role selectors and settings composition in `src/roles.ts` and `src/settings.ts`; alias validation/layering and thinking metadata in `src/utils.ts`, `src/types.ts`, and `src/workflow.ts`; no role inheritance documented in `docs/roles.md`; project trust and tool ceilings in `src/authorization.ts` and `src/launcher.ts`; optional workflow registration in `src/extension.ts` and `src/workflow.ts`. Existing tests cover these boundaries in `test/core.test.mjs`, `test/workflow-adapter.test.mjs`, `test/workflow-parity.test.mjs`, and `test/launcher.test.mjs`. Decision: evidence-backed no-op; adding role inheritance, independent effort metadata, or a sandbox would duplicate Pi/PiWorkflow responsibilities or break compatibility. No source/test/doc improvement is justified beyond this audit record.
+L4: 2026-10-27: Validation passed after user-approved dependency installation: `npm run build`; focused role/workflow/launcher tests (42/42); `npm run check` (63/63); `npm run test:package`; `npm run test:terminal`; `git diff --check`. `package-lock.json`, generated `dist/`, source, tests, docs, and release metadata have no changes; only this audit task document is in scope.
