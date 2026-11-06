@@ -50,6 +50,8 @@ The optional `mcp` selector scopes MCP tools by server, for example `mcp: [codeg
 
 Five model-free fallback roles: `developer`, `oracle`, `researcher`, `reviewer` and `scout`. Global and authorized project roles override those defaults.
 
+A sixth role ships alongside them, `companion`: a read-only tutor for a project another agent is working on. It is not model-free, because explaining existing code is cheaper than writing it: it declares `model: companion-model`, so the alias has to exist in settings. The extension that drives it lives at [pi-companion](https://github.com/darkrei08/pi-companion).
+
 `pi-role` applies a role and starts one normal Pi process. Native interactive, print/JSON, RPC and session behavior stay with Pi. See [CLI contracts and limits](docs/roles.md#native-cli).
 
 Extensions contribute packaged roles with `registerRoleContribution`. Programmatic consumers use `discoverRoles`, `resolveRole` and `composeRoleConfiguration` to obtain definitions and options, then apply them through their own runtime. This package does not create SDK sessions or own their lifecycle.
