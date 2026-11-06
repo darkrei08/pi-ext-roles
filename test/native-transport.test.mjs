@@ -11,6 +11,7 @@ const root=fileURLToPath(new URL('..',import.meta.url)),cli=join(root,'dist/cli.
 test('private payload validates every layer, refusing malformed and invalid selectors',()=>{
  for(const payload of [undefined,'{}','[null]','[null,null,null,1]','[null,null,null,["!"]]'])assert.throws(()=>parseToolLayers(payload));
  assert.deepEqual(parseToolLayers('[null,null,["!*","driver*"],null]'),[undefined,undefined,['!*','driver*'],undefined]);
+ assert.deepEqual(parseToolLayers('[null,null,null,["!*"],["!mcp__*"]]'),[undefined,undefined,undefined,['!*'],['!mcp__*']]);
 });
 test('native requests, stdin/session passthrough, loadout nested execution and absolute callable ceilings', {timeout:90000}, async t=>{
  const dir=mkdtempSync(join(tmpdir(),'roles-native-')),cwd=join(dir,'cwd'),agent=join(dir,'agent'),log=join(dir,'events');
@@ -32,7 +33,7 @@ test('native requests, stdin/session passthrough, loadout nested execution and a
  writeFileSync(join(agent,'extensions/fixture.js'),`import {appendFileSync} from 'node:fs';
 export default function(pi){
 const log=value=>appendFileSync(${JSON.stringify(log)},JSON.stringify(value)+'\\n');log({type:'factory'});
-pi.registerProvider('fixture',{api:'openai-completions',baseUrl:'http://127.0.0.1:${server.address().port}/v1',apiKey:'fixture',models:[{id:'model',name:'Fixture',reasoning:false,input:['text'],cost:{input:0,output:0,cacheRead:0,cacheWrite:0},contextWindow:8192,maxTokens:1024}]});
+pi.registerProvider('fixture',{api:'openai-completions',baseUrl:'http://127.0.0.1:${server.address().port}/v1',apiKey:process.env.PI_TEST_API_KEY,models:[{id:'model',name:'Fixture',reasoning:false,input:['text'],cost:{input:0,output:0,cacheRead:0,cacheWrite:0},contextWindow:8192,maxTokens:1024}]});
 for(const exposure of ['direct','deferred','codemode','hidden','model-only'])pi.registerTool({name:exposure,label:exposure,description:exposure,exposure,parameters:{type:'object',properties:{}},execute:async()=>{log({type:'executed',name:exposure});return {content:[{type:'text',text:exposure}],details:{}};}});
 pi.registerTool({name:'driver',label:'Driver',description:'Driver',parameters:{type:'object',properties:{}},execute:async(id,args,signal,update,ctx)=>{for(const name of ['direct','deferred','codemode','hidden','model-only']){try{const result=await ctx.executeTool(name,{});log({type:'nested',name,result});}catch(error){log({type:'nested',name,error:String(error)});}}return {content:[{type:'text',text:'DRIVER_OK'}],details:{}};}});
 pi.on('session_start',()=>log({type:'start',all:pi.getAllTools().map(t=>t.name),active:pi.getActiveTools()}));
@@ -41,7 +42,7 @@ pi.registerFlag('try-reenable',{type:'boolean',description:'Fixture'});
 pi.on('before_agent_start',()=>{if(pi.getFlag('try-reenable'))pi.setActiveTools(['driver','read','direct','deferred','codemode','hidden','model-only']);log({type:'attempt',active:pi.getActiveTools()});});
 pi.on('session_shutdown',()=>log({type:'shutdown'}));
 }`);
- const env={...process.env,PI_OFFLINE:'1',PI_CODING_AGENT_DIR:agent,HOME:dir,XDG_CACHE_HOME:join(dir,'cache')};
+ const env={...process.env,PI_OFFLINE:'1',PI_TEST_API_KEY:'fixture',PI_CODING_AGENT_DIR:agent,HOME:dir,XDG_CACHE_HOME:join(dir,'cache')};
  async function run(extra,stdin='STDIN_NATIVE') {
   calls=[];writeFileSync(log,'');
   const child=spawn(process.execPath,[cli,'fixture','-p',...(extra.includes('--session')?[]:['--no-session']),...extra],{cwd,env,stdio:['pipe','pipe','pipe']});
@@ -82,7 +83,7 @@ pi.on('session_shutdown',()=>log({type:'shutdown'}));
  const rpc=spawn(process.execPath,[cli,'fixture','--mode','rpc','--no-session'],{cwd,env,stdio:['pipe','pipe','pipe']});
  t.after(()=>{if(rpc.exitCode===null)rpc.kill('SIGKILL');});
  const waiting=new Map();let buffer='';rpc.stderr.resume();
- rpc.stdout.on('data',chunk=>{buffer+=chunk;let index;while((index=buffer.indexOf('\n'))>=0){const line=buffer.slice(0,index);buffer=buffer.slice(index+1);try{const event=JSON.parse(line);waiting.get(event.type==='agent_end'?'end':event.id)?.(event);}catch{}}});
+ rpc.stdout.on('data',chunk=>{buffer+=chunk;let index;while((index=buffer.indexOf('\n'))>=0){const line=buffer.slice(0,index);buffer=buffer.slice(index+1);try{const event=JSON.parse(line);waiting.get(event.type==='agent_end'?'end':event.id)?.(event);}catch{continue;}}});
  const ask=command=>new Promise(resolve=>{waiting.set(command.id,resolve);rpc.stdin.write(JSON.stringify(command)+'\n');});
  await ask({id:'ready',type:'get_state'});await ask({id:'mute',type:'prompt',message:'/mute'});
  const ended=new Promise(resolve=>waiting.set('end',resolve));

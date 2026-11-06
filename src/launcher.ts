@@ -8,7 +8,7 @@ import { resolveProjectAuthorization } from "./authorization.js";
 import { discoverRoles, isPackagedFallbackRole, resolveRole, type RoleDiscoveryOptions } from "./roles.js";
 import { collectRoleContributions } from "./contributions.js";
 import { composeRoleConfiguration } from "./settings.js";
-import { errorText, fail, modelAliasName, resolveModelReference, selectResourcesByLayers } from "./utils.js";
+import { errorText, fail, isNodeError, modelAliasName, object, resolveModelReference, selectResourcesByLayers } from "./utils.js";
 import { canonicalPath, extensionIdentity } from "./paths.js";
 import { TOOL_LAYERS_FLAG } from "./cli-tool-bridge.js";
 
@@ -46,6 +46,18 @@ function stripOptions(args: string[], names: readonly string[]) {
   for (const { index, width } of scanOptions(args).options.filter(option => names.includes(option.name)).reverse()) args.splice(index, width + 1);
 }
 function insertOptions(args: string[], options: string[]) { args.splice(scanOptions(args).end, 0, ...options); }
+function configuredMcpServerNames(agentDir: string, cwd: string, projectTrusted: boolean): readonly string[] {
+  const servers = new Map<string, unknown>();
+  for (const path of [join(agentDir, "mcp.json"), ...(projectTrusted ? [join(cwd, ".pi", "mcp.json")] : [])]) {
+    let parsed: unknown;
+    try { parsed = JSON.parse(readFileSync(path, "utf8")) as unknown; }
+    catch (error) { if (isNodeError(error, "ENOENT")) continue; throw error; }
+    if (!object(parsed) || !object(parsed.mcpServers)) continue;
+    for (const [name, config] of Object.entries(parsed.mcpServers)) servers.set(name, config);
+  }
+  return [...servers].filter(([, config]) => object(config) && config.enabled !== false).map(([name]) => name);
+}
+function mcpToolName(server: string): string { return `mcp__${server.replace(/-/g, "_")}__*`; }
 async function launch(args: string[], cwd: string, agentDir: string): Promise<number> {
   // Resolve the user's native executable through PATH, not the peer SDK's entrypoint.
   const child = spawn("pi", args, { cwd, env: { ...process.env, PI_CODING_AGENT_DIR: agentDir }, stdio: "inherit" });
@@ -132,7 +144,7 @@ export async function runPiRole(argv: readonly string[], cwd = process.cwd(), ag
         packagedFallback: isPackagedFallbackRole(definition),
         ...(definition.model === undefined ? {} : { model: definition.model }),
         promptMode: definition.overrideSystemPrompt === true ? "override" : "append",
-        selectors: { ...(definition.tools === undefined ? {} : { tools: [...definition.tools] }), ...(definition.skills === undefined ? {} : { skills: [...definition.skills] }), ...(definition.extensions === undefined ? {} : { extensions: [...definition.extensions] }) },
+        selectors: { ...(definition.tools === undefined ? {} : { tools: [...definition.tools] }), ...(definition.skills === undefined ? {} : { skills: [...definition.skills] }), ...(definition.extensions === undefined ? {} : { extensions: [...definition.extensions] }), ...(definition.mcp === undefined ? {} : { mcp: [...definition.mcp] }) },
         ...(definition.contextFiles === undefined ? {} : { contextFiles: [...definition.contextFiles] }),
       };
       process.stdout.write(`${JSON.stringify(diagnostic, null, 2)}\n`);
@@ -142,7 +154,8 @@ export async function runPiRole(argv: readonly string[], cwd = process.cwd(), ag
     const config = composeRoleConfiguration(discovery);
     // Explicit native models remain native, including fuzzy ids and extension-provided models.
     const explicitAlias = parsed.model && !parsed.provider && modelAliasName(parsed.model, config.modelAliases);
-    const selected = resolveRole(role, { ...discovery, ...(parsed.model ? { modelOverride: { provider: "native", model: "native" } } : {}) });
+    const mcpServerNames = configuredMcpServerNames(agentDir, cwd, projectTrusted);
+    const selected = resolveRole(role, { ...discovery, resources: { mcp: mcpServerNames }, ...(parsed.model ? { modelOverride: { provider: "native", model: "native" } } : {}) });
     const settingsManager = SettingsManager.create(cwd, agentDir, { projectTrusted });
     const manager = new DefaultPackageManager({ cwd, agentDir, settingsManager, builtinExtensions: ["llama.cpp", "codemode", "tool-search", "mcp"] });
     const configured = await manager.resolve(async () => "error");
@@ -204,7 +217,16 @@ export async function runPiRole(argv: readonly string[], cwd = process.cwd(), ag
     // Native 1.0.x treats --tools as stronger than noTools and no-builtin-tools only
     // as an initial loadout. Compose hard registry ceilings, not just a UI filter.
     if (parsed.noTools) additions.push("--tools", "");
-    else if (parsed.noBuiltinTools) additions.push("--exclude-tools", [...new Set([...(parsed.excludeTools ?? []), ...BUILTIN_TOOLS])].join(","));
+    else {
+      const mcpExclusions = selected.selectedMcp === undefined ? [] : selected.selectedMcp.length === 0
+        ? ["mcp__*"]
+        : mcpServerNames.filter(server => !selected.selectedMcp!.includes(server)).map(mcpToolName);
+      const exclusions = [...new Set([...(parsed.excludeTools ?? []), ...(parsed.noBuiltinTools ? BUILTIN_TOOLS : []), ...mcpExclusions])];
+      if (exclusions.length > 0) {
+        stripOptions(rest, ["--exclude-tools", "-xt"]);
+        additions.push("--exclude-tools", exclusions.join(","));
+      }
+    }
     if (selected.selectorLayers.tools.some(layer => layer !== undefined) && !parsed.noTools) {
       const layers = parsed.tools === undefined ? selected.selectorLayers.tools : [undefined, undefined, undefined, ["!*", ...parsed.tools]];
       additions.unshift("--extension", fileURLToPath(new URL("./cli-tool-bridge.js", import.meta.url)), `--${TOOL_LAYERS_FLAG}`, JSON.stringify(layers));
