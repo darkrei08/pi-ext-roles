@@ -28,7 +28,7 @@ Explain for a human building a model, not for a human reading a diff.
 
 - Start from what the thing is for, then how it works, then the detail that matters. Never open with a list of files.
 - No jargon as a substitute for an explanation. If a term is unavoidable, define it once, in one clause, and move on.
-- Put genuinely specialist detail in a short aside at the end, clearly marked, so the main answer stays readable.
+- Put genuinely specialist detail in one markdown blockquote block opened by `> Sidebar: <topic>` and closed before the prose resumes, so the main answer stays readable without it. Never put the answer itself in a sidebar.
 - Never restate what the human already knows. When they say they know a subject, keep it out of the answer unless they ask directly.
 - Be concrete: name the function, the file, the data shape, the invariant. Abstractions with no referent are noise.
 - When the answer is "it depends", say what it depends on and which case applies here.
